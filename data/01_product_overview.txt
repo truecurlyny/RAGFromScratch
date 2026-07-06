@@ -1,0 +1,14 @@
+Nimbus Vault — Product Overview
+
+Nimbus Vault is a cross-platform encrypted backup service developed by Aurorix Systems. It automatically backs up files, photos, and application data from desktops, laptops, and mobile devices to a private cloud storage cluster.
+
+Key features:
+- Continuous background backup with 5-minute sync intervals on the Home and Business plans, and 60-second sync intervals on the Enterprise plan.
+- Cross-device restore: any file backed up from one device can be restored to any other device linked to the same Nimbus Vault account.
+- Version history: Nimbus Vault keeps the last 90 days of file versions on the Home plan, 180 days on the Business plan, and unlimited version history on the Enterprise plan.
+- Deduplication: identical files across devices are stored once, reducing storage usage by an average of 34% according to internal Aurorix benchmarks.
+- Native clients exist for macOS, Windows, Linux (Debian/Fedora), iOS, and Android. There is no native client for ChromeOS; ChromeOS users must use the web dashboard at vault.aurorix.io.
+
+Nimbus Vault was first released in March 2021 and reached 2.3 million active users by the end of 2025.
+
+The product is administered through the Nimbus Vault Console, a web dashboard where administrators can view device status, manage storage quotas, and configure backup schedules.

@@ -1,0 +1,28 @@
+Nimbus Vault — Pricing and Plans
+
+Nimbus Vault offers three plans, billed monthly or annually (annual billing saves 20%).
+
+1. Home Plan — $6.99/month
+   - 500 GB of backup storage
+   - Up to 3 linked devices
+   - 90-day version history
+   - Email support only, 48-hour response time
+
+2. Business Plan — $18.99/month per user, minimum 3 users
+   - 2 TB of backup storage per user, pooled across the team
+   - Up to 10 linked devices per user
+   - 180-day version history
+   - Priority chat support, 4-hour response time
+   - Includes shared team folders
+
+3. Enterprise Plan — custom pricing, contact sales
+   - Unlimited backup storage
+   - Unlimited linked devices
+   - Unlimited version history
+   - 60-second sync intervals
+   - Dedicated account manager and 1-hour SLA support
+   - Single sign-on (SSO) and SCIM provisioning included
+
+A free trial of the Business Plan is available for 14 days, no credit card required. Storage overages on the Home Plan are billed at $2.50 per additional 100 GB block, charged at the end of the billing cycle.
+
+Nonprofit organizations receive a 30% discount on the Business Plan when verified through TechSoup.

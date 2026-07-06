@@ -1,0 +1,17 @@
+Nimbus Vault — Troubleshooting Guide
+
+Error NV-101: "Sync paused — storage quota exceeded"
+Cause: the linked account has exceeded its plan's storage limit.
+Fix: free up space by deleting old backups in the Nimbus Vault Console, or upgrade the plan. On the Home plan, overage billing can also be enabled instead of pausing sync, in Settings > Billing > Auto-overage.
+
+Error NV-204: "Device not recognized"
+Cause: the device's local encryption certificate is out of sync with the account, usually after a factory reset or a long period offline (90+ days).
+Fix: unlink the device from the Console and re-link it, which will trigger a full re-upload of local files for comparison against the cloud copy.
+
+Error NV-317: "Restore failed — version not available"
+Cause: the requested file version has aged out of the retention window for the current plan (90 days on Home, 180 days on Business).
+Fix: none available; this is expected behavior once a version passes the retention window. Enterprise plans do not experience this error since version history is unlimited.
+
+Slow sync speeds on macOS are most commonly caused by Spotlight re-indexing the Nimbus Vault local cache folder. Excluding the folder ~/Library/Application Support/NimbusVault/cache from Spotlight indexing (System Settings > Siri & Spotlight > Spotlight Privacy) typically resolves this.
+
+For any error code not listed here, contact support through the Console's in-app chat and include the error code and the device's Client ID, found under Settings > About.
