@@ -100,7 +100,8 @@ Mac-specific except the install commands. You need:
    First run will download the embedding model (~80MB) and may take a
    minute; after that it's fast.
 
-5. **Ask questions:**
+5. **Ask questions.** This starts an interactive prompt — type a question
+   at the `You:` line and press Enter; type `quit` (or `exit`) to leave.
    ```
    python src/query.py
    ```
@@ -110,9 +111,9 @@ Mac-specific except the install commands. You need:
    - "Is SMS two-factor authentication still supported?"
    - "How long is version history kept on each plan?"
 
-   Each answer prints which chunks were retrieved (with a distance score,
-   lower = more similar) before the generated answer, so you can see
-   retrieval and generation as two separate, inspectable steps.
+   Before each answer it prints the retrieved chunks with a distance score
+   (lower = more similar), so you can watch retrieval and generation as two
+   separate, inspectable steps.
 
 ## Using your own documents
 

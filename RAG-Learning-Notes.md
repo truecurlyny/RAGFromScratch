@@ -1,15 +1,12 @@
-# RAG From Scratch — Learning Notes (so far)
+# RAG From Scratch — Learning Notes
 
 > These are my study notes from building a local RAG pipeline step-by-step in Claude Code.
-> I'm a first-timer to the whole topic. I want to KEEP LEARNING BY BUILDING, one concept at
-> a time — please don't dump everything or auto-build it for me. Explain, quiz me, let me run
-> and inspect each step. A prompt to continue from here is at the very bottom.
+> I'm a first-timer to the whole topic. I learned it BY BUILDING, one concept at a time —
+> explain, quiz me, run and inspect each step, then move on.
 
-> **If you're reading this on GitHub:** the notes are a running journal that captures the
-> *concepts* one at a time, in the order I learned them (they trail off at section 13, where
-> I was when I wrote them). The **code in `src/` is complete and runnable** — follow the
-> [README](README.md) to set it up. Read these notes next to the code to understand *why*
-> each piece exists, not just *what* it does.
+> These notes now go the WHOLE way: problem → concepts → build → run → a correct grounded
+> answer. Read them next to the code in src/ (the code is finished and runs — see README to
+> set it up). The notes are the WHY; the code is the WHAT.
 
 ---
 
@@ -175,33 +172,98 @@ questions cheaply (Stages 4–6). Embedding model appears in BOTH Stage 2 and St
 
 ---
 
-## 12. Environment status (already set up — the "workshop")
-- ✅ Python 3.12 venv + deps installed (torch, chromadb, sentence-transformers)
-- ✅ Ollama installed & running; `llama3.2` pulled (2 GB)
-- ❌ Vector index (`chroma_db/`) NOT built yet — that's Stage 1–3, coming up
-- These were called "plumbing" — not RAG concepts themselves.
+## 12. Embeddings — WHY numbers capture meaning (the core magic)
+An embedding model turns text → a fixed list of numbers (a **vector**). Ours (all-MiniLM)
+outputs **384 numbers** per chunk, no matter how long the text is.
+
+The key idea: those 384 numbers are **coordinates in a 384-dimensional space**. The model is
+trained so that text with **similar meaning lands close together**, and unrelated text lands
+far apart. "How much is the Business plan?" and "Business Plan — $18.99/month" end up as
+neighbors even though they barely share any words.
+
+- It's **meaning**, not keyword matching. "cost" and "$18.99" have no letters in common, but
+  their vectors sit close.
+- We can't picture 384-D, but "distance between two points" is the same formula in any number
+  of dimensions — just more terms. 2-D/3-D intuition still carries.
+- Where does the "meaning" come from? **Training.** The model saw billions of sentences and
+  learned which words/phrases show up in similar contexts; that pattern is baked into its
+  weights → similar contexts produce similar vectors.
+
+Mental picture: a giant map where every possible sentence has an address, and things that
+mean the same thing live in the same neighborhood. Embedding = looking up the address.
+⚠️ This is exactly WHY #9 matters — model A and model B draw DIFFERENT maps, so an address
+from A is meaningless on B's map.
 
 ---
 
-## 13. Where we are / what's NEXT
-Covered: the big picture, the two models, Ollama/servers, context window, file formats +
-quantization, llama.cpp vs Ollama, the engine/wrapper landscape, and the Q4 same-model
-principle. Open quiz item: **Q5** (what is `__pycache__` and why git ignores it — already
-explained, just not re-answered).
+## 13. ChromaDB — how "nearest" actually works
+ChromaDB is the **vector database**: it stores every chunk's vector (+ the original text +
+metadata), and given a query vector it hands back the closest ones.
 
-**Not yet covered (next up):**
-- **Embeddings deep-dive** — WHY do numbers capture meaning, and why does "close vectors =
-  similar meaning" work? (the core magic)
-- **ChromaDB** — how the vector store actually finds "nearest" (distance/similarity).
-- **Actually RUNNING Stage 1 (chunking)** and inspecting real chunks, then embed → store →
-  retrieve → generate, watching each step's output.
+- "Closest" = smallest **distance** between the query vector and each stored vector. Lower =
+  more similar — that's the `distance=` number `query.py` prints for each retrieved chunk.
+- Naive method: compare the query against EVERY stored vector (totally fine for our 10 chunks).
+  Big vector DBs build an index (e.g. HNSW, a graph you hop through) so they don't scan
+  millions one-by-one — but the idea is identical: find the nearest points.
+- Chroma persists to disk in `./chroma_db/`, so we embed ONCE and reuse forever (the
+  Stage 1–3 / 4–6 split from #11).
+
+So retrieval = embed the question with the SAME model (#9) → ask Chroma for the TOP_K nearest
+vectors → get back the human-readable chunks they belong to.
 
 ---
 
-## ▶️ PROMPT TO CONTINUE (paste this under these notes in a new Claude chat)
-> I'm learning RAG by building a local pipeline, step-by-step, as a first-timer. The notes
-> above are everything I've covered so far. Please CONTINUE TEACHING me from section 13
-> ("what's next") — one concept at a time, explain then quiz me, and don't dump everything
-> at once or build it all for me. Start by explaining **embeddings** (why numbers can capture
-> meaning, and why comparing vectors finds similar text), then check my understanding before
-> moving on.
+## 14. Running the whole thing end-to-end
+**INDEXING (once):**
+```
+python src/ingest.py
+```
+Loads all-MiniLM → chunks `data/` (10 chunks for our 4 files) → embeds each into a 384-num
+vector → writes them to `chroma_db/`. Ends with "Indexed 10 chunks".
+
+**QUERYING (per question):**
+```
+python src/query.py
+```
+Ask: *"How much does the Business plan cost and how many devices does it support?"*
+What happens, visibly:
+1. `query.py` embeds the question with all-MiniLM (Stage 4).
+2. Chroma returns the TOP_K=4 nearest chunks — printed with source + distance:
+   ```
+   [retrieved chunks]
+     - 02_pricing.txt (chunk 1, distance=0.845)
+     - 02_pricing.txt (chunk 0, distance=0.901)
+     - 01_product_overview.txt (chunk 1, distance=1.417)
+     - 01_product_overview.txt (chunk 2, distance=1.420)
+   ```
+   (The pricing file wins by a wide margin — distance ~0.85 vs ~1.42 for the
+   product-overview chunks. Lower = closer in meaning.)
+3. Those chunks get stuffed into the prompt under "Context:" (Stage 5).
+4. llama3.2 via Ollama writes the answer, citing the source file (Stage 6):
+   ```
+   Assistant: The Business Plan is $18.99/month per user (minimum 3 users) and
+   supports up to 10 linked devices per user. (02_pricing.txt)
+   ```
+
+**The PROOF it's really RAG:** $18.99 and "10 devices" are FICTIONAL Nimbus Vault facts. Base
+llama3.2 can't know them — it got them right ONLY because retrieval put them in the prompt.
+Blank the context (or point it at unrelated chunks) and it says it doesn't know, or guesses.
+
+---
+
+## 15. Where it all landed (recap)
+- Python 3.12 venv + deps (torch, chromadb, sentence-transformers)
+- Ollama running; `llama3.2` pulled (2 GB)
+- `chroma_db/` built by `ingest.py` (Stages 1–3)
+- `query.py` answers questions end-to-end (Stages 4–6), grounded + citing sources
+
+Full loop, start to finish: **the problem RAG solves → the two models → Ollama/servers →
+context window → file formats + quantization → embeddings → the vector DB → build the index →
+ask a question → a correct, source-cited answer about facts the model never saw in training.**
+
+**Ideas to push further (not built — next time I tinker):**
+- Swap the LLM (`qwen2.5:7b`) or the embedder (`nomic-embed-text`) and compare answers —
+  re-run `ingest.py` if you change the EMBEDDER (#9), otherwise the index is stale.
+- Tune `chunk_size` / `overlap` (chunking.py) and `TOP_K` (query.py); watch retrieval shift.
+- Print the actual prompt sent to the LLM to SEE the augmentation with your own eyes.
+- Add a PDF→text step so `data/` can hold real documents, not just `.txt`.
