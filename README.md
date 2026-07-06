@@ -73,12 +73,12 @@ Mac-specific except the install commands. You need:
    `ollama serve` in a terminal, or launch the Ollama app — it runs in
    the background).
 
-2. **Pull a model.** On a 32GB M-series Mac, a good starting point:
+2. **Pull a model.** A good starting point:
    ```
    ollama pull llama3.2
    ```
-   This is a 3B model, fast and fits comfortably in memory. For better
-   answer quality (still fast on your hardware), you can instead use:
+   This is a small 3B model — fast and light on memory. For better answer
+   quality (at the cost of a larger download and more RAM), you can instead use:
    ```
    ollama pull qwen2.5:7b
    ```
